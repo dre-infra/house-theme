@@ -1,0 +1,8 @@
+<script>
+    window.HOUSE_THEME = {
+        key: {{ theme.key | tojson }},
+        emojis: {{ theme.emojis | tojson }},
+        direction: {{ theme.direction | tojson }}
+    };
+</script>
+<script src="{{ url_for('house_theme.static', filename='house-theme.js') }}" defer></script>

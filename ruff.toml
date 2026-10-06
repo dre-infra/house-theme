@@ -1,0 +1,7 @@
+# Conservative lint set for CI: syntax errors, undefined names, unused
+# imports/variables (pyflakes) and a few pycodestyle basics. Tighten later
+# by adding rule codes here, not by relying on ruff's defaults.
+target-version = "py312"
+
+[lint]
+select = ["E4", "E7", "E9", "F"]

@@ -1,0 +1,85 @@
+/* house-theme — banner + particle styles shared by every family app.
+   Accent variables (--accent, --accent-2, --accent-soft-light, --on-accent,
+   --banner-*) are set per theme by house_theme/head.html; the app's own
+   style.css keeps the neutrals and its dark-mode --accent-soft mix. */
+
+/* ---- Banner ---------------------------------------------------------- */
+.theme-banner {
+    text-align: center;
+    font-family: var(--serif, Georgia, serif);
+    font-size: .95rem;
+    padding: .45rem 1rem;
+    color: var(--banner-text);
+    background: linear-gradient(100deg, var(--banner-start), var(--banner-end));
+}
+.theme-banner.pride {
+    background: linear-gradient(100deg, #d14b1e, #d98a1e, #c8b02a, #2f8f52, #2f6ea8, #7a4bbd);
+    color: #fff;
+}
+.theme-banner.black_history {
+    background: linear-gradient(100deg, #1c1c1c 0%, #8a1c1c 45%, #1f6b4a 100%);
+    color: #fff;
+}
+.theme-banner.halloween_night {
+    background: linear-gradient(100deg, #140b1d 0%, #3d1f5c 55%, #1c2a0c 100%);
+    color: #ff9a2e;
+    letter-spacing: .02em;
+}
+.theme-banner.birthday {
+    font-weight: 600;
+}
+
+/* ---- Particles ------------------------------------------------------- */
+.particle-overlay {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 9999;
+}
+.particle {
+    position: absolute;
+    line-height: 1;
+    user-select: none;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+.particle-fall {
+    top: -10vh;
+    animation-name: particle-fall;
+}
+.particle-rise {
+    bottom: -10vh;
+    animation-name: particle-rise;
+}
+@keyframes particle-fall {
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+    8%   { opacity: 0.9; }
+    50%  { transform: translateY(55vh) translateX(calc(var(--drift, 40px) * 0.5)) rotate(180deg); }
+    92%  { opacity: 0.9; }
+    100% { transform: translateY(120vh) translateX(var(--drift, 40px)) rotate(360deg); opacity: 0; }
+}
+@keyframes particle-rise {
+    0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+    8%   { opacity: 0.9; }
+    50%  { transform: translateY(-55vh) translateX(calc(var(--drift, 40px) * 0.5)) rotate(-180deg); }
+    92%  { opacity: 0.9; }
+    100% { transform: translateY(-120vh) translateX(var(--drift, 40px)) rotate(-360deg); opacity: 0; }
+}
+
+.particle-burst {
+    position: fixed;
+    z-index: 10000;
+    transform: translate(-50%, -50%);
+    animation: particle-burst 0.9s ease-out forwards;
+}
+@keyframes particle-burst {
+    0%   { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) rotate(320deg) scale(0.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .particle-overlay, .particle-burst { display: none !important; }
+}

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "house-theme"
+version = "1.0.0"
+description = "Shared date-driven seasonal/holiday theme for dre-infra Flask apps"
+requires-python = ">=3.11"
+dependencies = [
+    "Flask>=3.0",
+    # zoneinfo needs tz data; python:*-slim images don't ship it.
+    "tzdata>=2024.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.3", "ruff==0.16.9"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+house_theme = ["static/*", "templates/house_theme/*"]

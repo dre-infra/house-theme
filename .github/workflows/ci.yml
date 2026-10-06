@@ -1,0 +1,37 @@
+# Lint + test on every push/PR. Runs on GitHub-hosted runners (public repo,
+# no secrets), so the Acer's org runner isn't involved.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      # Installs the package the same way the apps do (a real build, not
+      # just src/ on the path), so a missing static/template file in
+      # package-data fails here instead of in an app's deploy.
+      - name: Install
+        run: pip install ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check --output-format=github .
+
+      - name: Test (pytest, against the installed package)
+        run: pytest -q -p no:cacheprovider --import-mode=importlib

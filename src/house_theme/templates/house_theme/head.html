@@ -1,0 +1,16 @@
+<link rel="stylesheet" href="{{ url_for('house_theme.static', filename='house-theme.css') }}">
+<style>
+    /* house-theme: {{ theme.key }} */
+    :root {
+{%- for name, value in theme.light.items() %}
+        {{ name }}: {{ value }};
+{%- endfor %}
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+{%- for name, value in theme.dark.items() %}
+            {{ name }}: {{ value }};
+{%- endfor %}
+        }
+    }
+</style>
