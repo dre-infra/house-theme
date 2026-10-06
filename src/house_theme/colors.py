@@ -49,12 +49,46 @@ def best_text_on(*backgrounds):
     return LIGHT_TEXT if worst(LIGHT_TEXT) >= worst(DARK_TEXT) else DARK_TEXT
 
 
+def rgba(color, alpha):
+    r, g, b = _rgb(color)
+    return f'rgba({r}, {g}, {b}, {alpha})'
+
+
+def neutrals(p):
+    """Page background, cards, borders and text, lightly tinted toward the
+    theme's primary so the whole page reads as the theme (purple-gray in
+    October, cool blue-gray in winter) instead of every app's cream/brown.
+    Tints are small so text stays high-contrast; tests check it."""
+    shadow = darken(p, 0.75)
+    light = {
+        '--bg': mix('#ffffff', p, 0.06),
+        '--surface': mix('#ffffff', p, 0.02),
+        '--surface-2': mix('#ffffff', p, 0.10),
+        '--text': mix('#161616', p, 0.12),
+        '--muted': mix('#5f5f5f', p, 0.25),
+        '--border': mix('#e2e2e2', p, 0.16),
+        '--shadow': f'0 1px 2px {rgba(shadow, .06)}, 0 8px 24px {rgba(shadow, .07)}',
+        '--shadow-lift': f'0 2px 6px {rgba(shadow, .09)}, 0 18px 40px {rgba(shadow, .12)}',
+    }
+    dark = {
+        '--bg': mix('#121212', p, 0.08),
+        '--surface': mix('#1a1a1a', p, 0.09),
+        '--surface-2': mix('#232323', p, 0.11),
+        '--text': mix('#f0f0f0', p, 0.06),
+        '--muted': mix('#a8a8a8', p, 0.15),
+        '--border': mix('#333333', p, 0.18),
+    }
+    return light, dark
+
+
 def palette(theme):
     """CSS custom-property values for light and dark mode."""
     p, s = theme['primary'], theme['secondary']
+    light_neutrals, dark_neutrals = neutrals(p)
 
     light_banner_end = darken(p, 0.22)
     light = {
+        **light_neutrals,
         '--accent': p,
         '--accent-2': s,
         '--accent-soft-light': theme['soft'],
@@ -70,6 +104,7 @@ def palette(theme):
     dp, ds = lighten(p, lift), lighten(s, 0.18)
     dark_banner_start = darken(p, 0.15)
     dark = {
+        **dark_neutrals,
         '--accent': dp,
         '--accent-2': ds,
         '--on-accent': best_text_on(dp),

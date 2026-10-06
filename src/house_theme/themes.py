@@ -17,9 +17,9 @@ reads as itself (brown + orange means fall and only fall):
   primary    -> --accent       links, buttons, banner
   secondary  -> --accent-2     secondary highlights
   soft       -> --accent-soft  pale tint behind chips/pills (light mode)
-Neutrals (background, text, borders) stay with each app's style.css, so
-readability and dark mode are untouched. Dark-mode accents and the text
-color that sits on an accent are derived in colors.py, not hand-kept.
+Page neutrals (background, cards, borders, text) are tinted toward the
+primary in colors.py, so the whole page changes with the theme, not just
+the buttons. Dark-mode values and on-accent text are derived there too.
 
 `emojis: []` = no particle effect (Black History Month, on purpose).
 `direction` is 'fall' or 'rise'.

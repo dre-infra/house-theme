@@ -9,7 +9,9 @@ so a new holiday or color fix is made once here.
 - Picks today's theme: **single day > whole month > season**
 - Sets each theme's accent colors (`--accent`, `--accent-2`,
   `--accent-soft-light`, `--on-accent`, `--banner-*`) for light **and** dark
-  mode. Neutrals stay with each app's `style.css`.
+  mode, and tints the page neutrals (`--bg`, `--surface`, `--surface-2`,
+  `--text`, `--muted`, `--border`, `--shadow*`) toward the theme so the whole
+  page reads as the season, not just the buttons.
 - Shows a banner, ambient emoji particles, and a burst on click
 - Birthday banners from `.env`, birthday first when it lands on a holiday
 
@@ -36,7 +38,7 @@ Dark-mode accents and the text color on accents are derived in
 `requirements.txt` (tarball URL, so the slim Docker image doesn't need git):
 
 ```
-house-theme @ https://github.com/dre-infra/house-theme/archive/refs/tags/v1.0.0.tar.gz
+house-theme @ https://github.com/dre-infra/house-theme/archive/refs/tags/v1.1.0.tar.gz
 ```
 
 `app.py`:
@@ -65,7 +67,7 @@ Base template (after the app's own stylesheet):
 
 `theme` is available in every template (`theme.key`, `theme.label`,
 `theme.banner`, `theme.birthday`). The app's CSS should use the house-style
-accent variables above instead of hard-coded colors.
+variables above (accents and neutrals) instead of hard-coded colors.
 
 ## Settings (`.env`)
 

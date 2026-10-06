@@ -62,6 +62,25 @@ def test_text_on_accents_is_readable(key):
             assert contrast(mode['--banner-text'], mode[stop]) >= 3, (key, stop)
 
 
+@pytest.mark.parametrize('key', sorted(THEMES))
+def test_tinted_page_is_readable(key):
+    """Body text and muted text on the tinted background/cards stay readable
+    (WCAG AA: 4.5:1 for muted, well above for body text)."""
+    from house_theme.colors import palette
+    for mode in palette(THEMES[key]):
+        for bg in ('--bg', '--surface', '--surface-2'):
+            assert contrast(mode['--text'], mode[bg]) >= 10, (key, bg)
+            assert contrast(mode['--muted'], mode[bg]) >= 4.5, (key, bg)
+
+
+def test_october_background_is_not_brown():
+    from house_theme.colors import _rgb
+    t = get_active_theme(date(2026, 10, 5))
+    for mode in (t['light'], t['dark']):
+        r, g, b = _rgb(mode['--bg'])
+        assert b >= r, mode['--bg']  # purple-leaning, not warm/brown
+
+
 def test_parse_birthdays():
     parsed = parse_birthdays(' 02-14:Alex , 07-03:Sam,07-03:Jo,bad,13-01:X,05-05: ')
     assert parsed == {(2, 14): ['Alex'], (7, 3): ['Sam', 'Jo']}

@@ -32,7 +32,7 @@ from .birthdays import birthday_banner, birthday_names, parse_birthdays
 from .colors import palette
 from .themes import THEMES, theme_key_for
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 __all__ = ['init_theme', 'get_active_theme', 'parse_birthdays', 'THEMES']
 
 log = logging.getLogger(__name__)
