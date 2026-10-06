@@ -1,8 +1,6 @@
-<script>
-    window.HOUSE_THEME = {
-        key: {{ theme.key | tojson }},
-        emojis: {{ theme.emojis | tojson }},
-        direction: {{ theme.direction | tojson }}
-    };
-</script>
-<script src="{{ url_for('house_theme.static', filename='house-theme.js') }}" defer></script>
+{#- Config travels as data- attributes (no inline script), so apps with a
+    strict Content-Security-Policy (script-src 'self') still get particles. -#}
+<script src="{{ url_for('house_theme.static', filename='house-theme.js') }}" defer
+        data-theme-key="{{ theme.key }}"
+        data-direction="{{ theme.direction }}"
+        data-emojis='{{ theme.emojis | tojson }}'></script>

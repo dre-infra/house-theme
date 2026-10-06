@@ -2,14 +2,26 @@
 // Ambient emoji drift on every page (falling leaves in fall, bats and
 // pumpkins in October, snow at Christmas, hearts + balloons on Valentine's
 // Day, ...) plus a matching burst wherever you click.
-// Config comes from window.HOUSE_THEME, injected by house_theme/scripts.html
-// from the server-resolved theme (themes.py). Purely visual: everything is
+// Config comes from data- attributes on the script tag, written by
+// house_theme/scripts.html from the server-resolved theme (themes.py). Purely visual: everything is
 // pointer-events:none so it never interferes with real clicks/links.
 //
 // An empty emoji list (e.g. Black History Month) means "no particle effect".
 
 (function () {
+    // Config comes from data- attributes on this <script> tag
+    // (house_theme/scripts.html); window.HOUSE_THEME still works if set.
+    var el = document.currentScript;
     var config = window.HOUSE_THEME || {};
+    if (!window.HOUSE_THEME && el && el.dataset.emojis) {
+        try {
+            config = {
+                key: el.dataset.themeKey,
+                emojis: JSON.parse(el.dataset.emojis),
+                direction: el.dataset.direction
+            };
+        } catch (e) { config = {}; }
+    }
     var EMOJIS = config.emojis || [];
     var DIRECTION = config.direction === 'rise' ? 'rise' : 'fall';
     var AMBIENT_COUNT = 14;

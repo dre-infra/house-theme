@@ -8,7 +8,7 @@ so a new holiday or color fix is made once here.
 
 - Picks today's theme: **single day > whole month > season**
 - Sets each theme's accent colors (`--accent`, `--accent-2`,
-  `--accent-soft-light`, `--on-accent`, `--banner-*`) for light **and** dark
+  `--accent-soft-light`, `--accent-soft`, `--on-accent`, `--banner-*`) for light **and** dark
   mode, and tints the page neutrals (`--bg`, `--surface`, `--surface-2`,
   `--text`, `--muted`, `--border`, `--shadow*`) toward the theme so the whole
   page reads as the season, not just the buttons.
@@ -38,7 +38,7 @@ Dark-mode accents and the text color on accents are derived in
 `requirements.txt` (tarball URL, so the slim Docker image doesn't need git):
 
 ```
-house-theme @ https://github.com/dre-infra/house-theme/archive/refs/tags/v1.1.0.tar.gz
+house-theme @ https://github.com/dre-infra/house-theme/archive/refs/tags/v1.2.0.tar.gz
 ```
 
 `app.py`:
@@ -66,7 +66,18 @@ Base template (after the app's own stylesheet):
 ```
 
 `theme` is available in every template (`theme.key`, `theme.label`,
-`theme.banner`, `theme.birthday`). The app's CSS should use the house-style
+`theme.banner`, `theme.birthday`, and `theme.accent` / `theme.accent2` as
+plain hex for favicons).
+
+If the app has a login hook with an allow-list of public endpoints, add
+`house_theme.static` to it, or the theme's CSS/JS get redirected to the login
+page. The theme injects no inline `<script>` (config rides on `data-`
+attributes), so a strict `script-src 'self'` CSP is fine; the head include
+does use an inline `<style>`, so `style-src` needs `'unsafe-inline'`.
+
+Apps designed for one mode only (e.g. the dark ticketing app) use
+`init_theme(app, scheme='dark')` (or `'light'`); the default `'auto'`
+follows the device. The app's CSS should use the house-style
 variables above (accents and neutrals) instead of hard-coded colors.
 
 ## Settings (`.env`)
@@ -75,7 +86,7 @@ variables above (accents and neutrals) instead of hard-coded colors.
 |---|---|---|
 | `BIRTHDAYS` | `02-14:Name,07-03:Other` | `MM-DD:Name`, comma-separated. Same date twice → "Name & Other". 02-29 shows on 02-28 in non-leap years. Bad entries are skipped and logged. |
 | `THEME_TZ` | `America/Phoenix` | Default. Containers run UTC, which flipped themes at 5 PM. |
-| `HOUSE_THEME_DATE` | `2026-10-31` | Preview a date's theme. Logs a warning; unset when done. |
+| `HOUSE_THEME_DATE` | `2026-10-31` | Preview a date's theme. Logs a warning; unset when done. An invalid value is ignored (logged). |
 
 Read once at startup, so restart the container after editing (`docker compose
 up -d` does that when `.env` changes).

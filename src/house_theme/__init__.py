@@ -32,7 +32,7 @@ from .birthdays import birthday_banner, birthday_names, parse_birthdays
 from .colors import palette
 from .themes import THEMES, theme_key_for
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __all__ = ['init_theme', 'get_active_theme', 'parse_birthdays', 'THEMES']
 
 log = logging.getLogger(__name__)
@@ -58,6 +58,9 @@ def get_active_theme(today=None, birthdays=None):
     theme = {
         'key': key,
         'label': base['label'],
+        # Plain hex values, for places CSS variables can't reach (favicons).
+        'accent': light['--accent'],
+        'accent2': light['--accent-2'],
         'emojis': list(base['emojis']),
         'direction': base['direction'],
         'light': light,
@@ -76,9 +79,19 @@ def get_active_theme(today=None, birthdays=None):
     return theme
 
 
-def init_theme(app):
+SCHEMES = ('auto', 'light', 'dark')
+
+
+def init_theme(app, scheme='auto'):
     """Register the static files/templates and inject `theme` into every
-    template. Settings can also be set on app.config with the same names."""
+    template. Settings can also be set on app.config with the same names.
+
+    scheme: 'auto' follows the device's light/dark setting; 'dark' or
+    'light' always uses that palette (for apps designed in one mode only).
+    """
+    if scheme not in SCHEMES:
+        raise ValueError(f'scheme must be one of {SCHEMES}, not {scheme!r}')
+
     def setting(name, default=None):
         return app.config.get(name) or os.environ.get(name) or default
 
@@ -86,8 +99,14 @@ def init_theme(app):
     tz_name = setting('THEME_TZ', 'America/Phoenix')
     ZoneInfo(tz_name)  # fail at startup, not per request, on a bad zone
 
-    preview = setting('HOUSE_THEME_DATE')
-    preview_date = date.fromisoformat(preview) if preview else None
+    preview = (setting('HOUSE_THEME_DATE') or '').strip()
+    preview_date = None
+    if preview:
+        try:
+            preview_date = date.fromisoformat(preview)
+        except ValueError:
+            log.warning('house_theme: ignoring HOUSE_THEME_DATE=%r '
+                        '(expected YYYY-MM-DD)', preview)
     if preview_date:
         log.warning('house_theme: HOUSE_THEME_DATE=%s set -- every page shows '
                     "that date's theme. Unset it when done previewing.", preview)
@@ -100,6 +119,8 @@ def init_theme(app):
     @app.context_processor
     def inject_house_theme():
         day = preview_date or today_in(tz_name)
-        return {'theme': get_active_theme(day, birthdays)}
+        theme = get_active_theme(day, birthdays)
+        theme['scheme'] = scheme
+        return {'theme': theme}
 
     return app

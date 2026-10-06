@@ -92,6 +92,7 @@ def palette(theme):
         '--accent': p,
         '--accent-2': s,
         '--accent-soft-light': theme['soft'],
+        '--accent-soft': theme['soft'],
         '--on-accent': best_text_on(p),
         '--banner-start': p,
         '--banner-end': light_banner_end,
@@ -108,6 +109,8 @@ def palette(theme):
         '--accent': dp,
         '--accent-2': ds,
         '--on-accent': best_text_on(dp),
+        # Light-mode tints would be bright blocks on a dark page.
+        '--accent-soft': 'color-mix(in srgb, var(--accent) 22%, var(--surface))',
         '--banner-start': dark_banner_start,
         '--banner-end': darken(p, 0.4),
         '--banner-text': best_text_on(dark_banner_start, darken(p, 0.4)),

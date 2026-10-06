@@ -1,11 +1,20 @@
 <link rel="stylesheet" href="{{ url_for('house_theme.static', filename='house-theme.css') }}">
 <style>
-    /* house-theme: {{ theme.key }} */
+    /* house-theme: {{ theme.key }} ({{ theme.scheme }}) */
+{%- if theme.scheme == 'dark' %}
+    :root {
+        color-scheme: dark;
+{%- for name, value in theme.dark.items() %}
+        {{ name }}: {{ value }};
+{%- endfor %}
+    }
+{%- else %}
     :root {
 {%- for name, value in theme.light.items() %}
         {{ name }}: {{ value }};
 {%- endfor %}
     }
+{%- if theme.scheme == 'auto' %}
     @media (prefers-color-scheme: dark) {
         :root {
 {%- for name, value in theme.dark.items() %}
@@ -13,4 +22,6 @@
 {%- endfor %}
         }
     }
+{%- endif %}
+{%- endif %}
 </style>

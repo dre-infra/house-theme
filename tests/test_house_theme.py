@@ -136,7 +136,7 @@ def test_flask_integration_renders_everything():
     assert '--accent: #c9184a;' in html
     assert '@media (prefers-color-scheme: dark)' in html
     assert 'Happy Birthday, &lt;b&gt;Alex&lt;/b&gt;! 🎂 · 💘' in html  # escaped
-    assert 'window.HOUSE_THEME' in html
+    assert 'data-emojis=' in html and 'window.HOUSE_THEME' not in html
     assert '/_house-theme/house-theme.js' in html
 
     for asset in ('house-theme.css', 'house-theme.js'):
@@ -163,3 +163,51 @@ def test_timezone_is_used(monkeypatch):
                         lambda tz: seen.append(tz) or date(2026, 10, 5))
     make_app(THEME_TZ='America/Phoenix').test_client().get('/')
     assert seen == ['America/Phoenix']
+
+
+def test_accent_keys_for_favicons():
+    t = get_active_theme(date(2026, 10, 5))
+    assert t['accent'] == THEMES['halloween']['primary']
+    assert t['accent2'] == THEMES['halloween']['secondary']
+
+
+def test_accent_soft_in_both_modes():
+    t = get_active_theme(date(2026, 10, 5))
+    assert t['light']['--accent-soft'] == THEMES['halloween']['soft']
+    assert t['dark']['--accent-soft'].startswith('color-mix(')
+
+
+def test_scheme_auto_emits_both_modes():
+    html = make_app(HOUSE_THEME_DATE='2026-10-05').test_client().get('/').get_data(as_text=True)
+    assert '@media (prefers-color-scheme: dark)' in html
+
+
+def test_scheme_dark_only_emits_dark():
+    app = Flask(__name__)
+    app.config.update(TESTING=True, HOUSE_THEME_DATE='2026-10-05')
+    init_theme(app, scheme='dark')
+    app.add_url_rule('/', 'page', lambda: render_template_string(PAGE))
+    html = app.test_client().get('/').get_data(as_text=True)
+    dark_bg = get_active_theme(date(2026, 10, 5))['dark']['--bg']
+    assert f'--bg: {dark_bg};' in html
+    assert 'color-scheme: dark' in html
+    assert '@media (prefers-color-scheme: dark)' not in html
+
+
+def test_bad_scheme_rejected():
+    with pytest.raises(ValueError):
+        init_theme(Flask(__name__), scheme='purple')
+
+
+def test_bad_preview_date_is_ignored():
+    resp = make_app(HOUSE_THEME_DATE='not-a-date').test_client().get('/')
+    assert resp.status_code == 200
+
+
+def test_no_inline_script_for_strict_csp():
+    """Apps with script-src 'self' (PDF Box) must still get particles."""
+    import re
+    html = make_app(HOUSE_THEME_DATE='2026-10-31').test_client().get('/').get_data(as_text=True)
+    inline = [m for m in re.findall(r'<script([^>]*)>', html) if 'src=' not in m]
+    assert inline == []
+    assert "data-emojis='[" in html
