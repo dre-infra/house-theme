@@ -7,6 +7,13 @@
 // pointer-events:none so it never interferes with real clicks/links.
 //
 // An empty emoji list (e.g. Black History Month) means "no particle effect".
+//
+// On/off toggle (v1.3.0): a small round button in the bottom-left corner
+// turns the particles (ambient + click bursts) off and on. The choice is
+// saved in localStorage, so it's remembered per device, per app. An app can
+// place the button itself: any element with a data-house-particles-toggle
+// attribute is used instead of the floating one. HOUSE_THEME_PARTICLES=off
+// in the app's .env turns particles off entirely (no button).
 
 (function () {
     // Config comes from data- attributes on this <script> tag
@@ -18,7 +25,8 @@
             config = {
                 key: el.dataset.themeKey,
                 emojis: JSON.parse(el.dataset.emojis),
-                direction: el.dataset.direction
+                direction: el.dataset.direction,
+                particles: el.dataset.particles
             };
         } catch (e) { config = {}; }
     }
@@ -26,19 +34,37 @@
     var DIRECTION = config.direction === 'rise' ? 'rise' : 'fall';
     var AMBIENT_COUNT = 14;
     var BURST_COUNT = 9;
+    var STORAGE_KEY = 'house-theme-particles';
 
+    if (config.particles === 'off') return; // turned off for this app (.env)
     if (!EMOJIS.length) return; // this theme has no particle effect
 
     var prefersReducedMotion = window.matchMedia &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
+    // localStorage can throw (private mode, blocked storage); default to on.
+    function loadEnabled() {
+        try { return window.localStorage.getItem(STORAGE_KEY) !== 'off'; }
+        catch (e) { return true; }
+    }
+    function saveEnabled(on) {
+        try {
+            if (on) window.localStorage.removeItem(STORAGE_KEY);
+            else window.localStorage.setItem(STORAGE_KEY, 'off');
+        } catch (e) { /* not remembered; still toggles for this page */ }
+    }
+
+    var enabled = loadEnabled();
+    var overlay = null;
+    var toggles = [];
+
     function randomEmoji() {
         return EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
     }
 
-    function initAmbientParticles() {
-        var overlay = document.createElement('div');
+    function buildOverlay() {
+        overlay = document.createElement('div');
         overlay.className = 'particle-overlay';
         overlay.setAttribute('aria-hidden', 'true');
 
@@ -93,13 +119,62 @@
         }
     }
 
+    function render() {
+        if (enabled && !overlay) buildOverlay();
+        if (overlay) overlay.hidden = !enabled;
+        var label = enabled ? 'Turn off falling decorations'
+                            : 'Turn on falling decorations';
+        toggles.forEach(function (btn) {
+            btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+            btn.setAttribute('aria-label', label);
+            btn.title = label;
+            btn.classList.toggle('is-off', !enabled);
+        });
+    }
+
+    function onToggle(event) {
+        event.preventDefault();
+        enabled = !enabled;
+        saveEnabled(enabled);
+        render();
+    }
+
+    function setUpToggles() {
+        var custom = document.querySelectorAll('[data-house-particles-toggle]');
+        if (custom.length) {
+            toggles = Array.prototype.slice.call(custom);
+        } else {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'house-particles-toggle';
+            var icon = document.createElement('span');
+            icon.setAttribute('aria-hidden', 'true');
+            icon.textContent = EMOJIS[0];
+            btn.appendChild(icon);
+            document.body.appendChild(btn);
+            toggles = [btn];
+        }
+        toggles.forEach(function (btn) {
+            btn.addEventListener('click', onToggle);
+        });
+    }
+
+    function start() {
+        setUpToggles();
+        render();
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAmbientParticles);
+        document.addEventListener('DOMContentLoaded', start);
     } else {
-        initAmbientParticles();
+        start();
     }
 
     document.addEventListener('click', function (event) {
+        if (!enabled) return;
+        var t = event.target;
+        if (t && t.closest && t.closest(
+            '.house-particles-toggle, [data-house-particles-toggle]')) return;
         burstParticlesAt(event.clientX, event.clientY);
     });
 })();

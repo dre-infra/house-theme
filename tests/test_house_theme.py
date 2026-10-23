@@ -211,3 +211,42 @@ def test_no_inline_script_for_strict_csp():
     inline = [m for m in re.findall(r'<script([^>]*)>', html) if 'src=' not in m]
     assert inline == []
     assert "data-emojis='[" in html
+
+
+def test_particles_on_by_default():
+    html = make_app(HOUSE_THEME_DATE='2026-10-05').test_client().get('/').get_data(as_text=True)
+    assert 'data-particles="on"' in html
+
+
+@pytest.mark.parametrize('value', ['off', 'OFF', ' off '])
+def test_particles_can_be_turned_off(value):
+    html = make_app(HOUSE_THEME_DATE='2026-10-05',
+                    HOUSE_THEME_PARTICLES=value).test_client().get('/').get_data(as_text=True)
+    assert 'data-particles="off"' in html
+    # Colors and banner still apply; only the motion is off.
+    assert '--accent:' in html
+
+
+def test_particles_env_var(monkeypatch):
+    monkeypatch.setenv('HOUSE_THEME_PARTICLES', 'off')
+    html = make_app(HOUSE_THEME_DATE='2026-10-05').test_client().get('/').get_data(as_text=True)
+    assert 'data-particles="off"' in html
+
+
+def test_bad_particles_value_falls_back_to_on():
+    html = make_app(HOUSE_THEME_DATE='2026-10-05',
+                    HOUSE_THEME_PARTICLES='sometimes').test_client().get('/').get_data(as_text=True)
+    assert 'data-particles="on"' in html
+
+
+def test_toggle_assets_shipped():
+    client = make_app().test_client()
+    js = client.get('/_house-theme/house-theme.js').get_data(as_text=True)
+    css = client.get('/_house-theme/house-theme.css').get_data(as_text=True)
+    assert 'house-theme-particles' in js and 'data-house-particles-toggle' in js
+    assert '.house-particles-toggle' in css
+
+
+def test_version():
+    import house_theme
+    assert house_theme.__version__ == '1.3.0'

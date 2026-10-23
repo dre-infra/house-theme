@@ -13,6 +13,8 @@ so a new holiday or color fix is made once here.
   `--text`, `--muted`, `--border`, `--shadow*`) toward the theme so the whole
   page reads as the season, not just the buttons.
 - Shows a banner, ambient emoji particles, and a burst on click
+- A small round button (bottom-left) turns the particles off and on. The
+  choice is remembered per device, per app (localStorage)
 - Birthday banners from `.env`, birthday first when it lands on a holiday
 
 | Theme | When | Primary | Secondary | Soft |
@@ -38,7 +40,7 @@ Dark-mode accents and the text color on accents are derived in
 `requirements.txt` (tarball URL, so the slim Docker image doesn't need git):
 
 ```
-house-theme @ https://github.com/dre-infra/house-theme/archive/refs/tags/v1.2.0.tar.gz
+house-theme @ https://github.com/dre-infra/house-theme/archive/refs/tags/v1.3.0.tar.gz
 ```
 
 `app.py`:
@@ -75,6 +77,28 @@ page. The theme injects no inline `<script>` (config rides on `data-`
 attributes), so a strict `script-src 'self'` CSP is fine; the head include
 does use an inline `<style>`, so `style-src` needs `'unsafe-inline'`.
 
+### Particle toggle
+
+The script adds a floating round button in the bottom-left corner (the
+Dashboard pill is top-left). Tapping it stops the ambient particles and the
+click bursts; tapping again brings them back. It's hidden when the theme has
+no particles (Black History Month), when the device asks for reduced motion,
+and when `HOUSE_THEME_PARTICLES=off`.
+
+If the button covers something in an app, move it with CSS:
+
+```css
+:root { --house-toggle-bottom: 72px; --house-toggle-left: 12px; }
+```
+
+or put your own button anywhere and the floating one isn't created:
+
+```html
+<button type="button" data-house-particles-toggle>✨ Effects</button>
+```
+
+It gets `aria-pressed`, a label/title and an `is-off` class when off.
+
 Apps designed for one mode only (e.g. the dark ticketing app) use
 `init_theme(app, scheme='dark')` (or `'light'`); the default `'auto'`
 follows the device. The app's CSS should use the house-style
@@ -87,6 +111,7 @@ variables above (accents and neutrals) instead of hard-coded colors.
 | `BIRTHDAYS` | `02-14:Name,07-03:Other` | `MM-DD:Name`, comma-separated. Same date twice → "Name & Other". 02-29 shows on 02-28 in non-leap years. Bad entries are skipped and logged. |
 | `THEME_TZ` | `America/Phoenix` | Default. Containers run UTC, which flipped themes at 5 PM. |
 | `HOUSE_THEME_DATE` | `2026-10-31` | Preview a date's theme. Logs a warning; unset when done. An invalid value is ignored (logged). |
+| `HOUSE_THEME_PARTICLES` | `off` | `on` (default) or `off`. `off` = no particles, no click bursts, no toggle button for this app (e.g. a kiosk screen). Anything else is ignored (logged). |
 
 Read once at startup, so restart the container after editing (`docker compose
 up -d` does that when `.env` changes).
