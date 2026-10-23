@@ -3,4 +3,5 @@
 <script src="{{ url_for('house_theme.static', filename='house-theme.js') }}" defer
         data-theme-key="{{ theme.key }}"
         data-direction="{{ theme.direction }}"
+        data-particles="{{ theme.particles or 'on' }}"
         data-emojis='{{ theme.emojis | tojson }}'></script>

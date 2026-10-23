@@ -19,6 +19,10 @@ Settings (env vars, read once at startup):
     THEME_TZ          IANA zone for "today" (default America/Phoenix;
                       containers run UTC, which flipped themes at 5 PM)
     HOUSE_THEME_DATE  YYYY-MM-DD to preview a date's theme (leave unset)
+    HOUSE_THEME_PARTICLES  on (default) or off. off = no falling emoji,
+                      no click bursts and no on/off button in this app.
+                      With on, people can still turn them off per device
+                      with the button (remembered in localStorage).
 """
 
 import logging
@@ -32,7 +36,7 @@ from .birthdays import birthday_banner, birthday_names, parse_birthdays
 from .colors import palette
 from .themes import THEMES, theme_key_for
 
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 __all__ = ['init_theme', 'get_active_theme', 'parse_birthdays', 'THEMES']
 
 log = logging.getLogger(__name__)
@@ -111,6 +115,12 @@ def init_theme(app, scheme='auto'):
         log.warning('house_theme: HOUSE_THEME_DATE=%s set -- every page shows '
                     "that date's theme. Unset it when done previewing.", preview)
 
+    particles = (setting('HOUSE_THEME_PARTICLES') or 'on').strip().lower()
+    if particles not in ('on', 'off'):
+        log.warning('house_theme: ignoring HOUSE_THEME_PARTICLES=%r '
+                    '(expected on or off)', particles)
+        particles = 'on'
+
     bp = Blueprint('house_theme', __name__,
                    static_folder='static', static_url_path='/_house-theme',
                    template_folder='templates')
@@ -121,6 +131,7 @@ def init_theme(app, scheme='auto'):
         day = preview_date or today_in(tz_name)
         theme = get_active_theme(day, birthdays)
         theme['scheme'] = scheme
+        theme['particles'] = particles
         return {'theme': theme}
 
     return app
